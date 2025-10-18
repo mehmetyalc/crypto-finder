@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1760812604614,
+      "tag": "0000_little_captain_marvel",
+      "breakpoints": true
+    }
+  ]
+}

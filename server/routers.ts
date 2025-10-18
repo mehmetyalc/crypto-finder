@@ -3,10 +3,12 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { cryptoRouter } from "./routers/crypto";
+import { coingeckoRouter } from "./routers/coingecko";
 
 export const appRouter = router({
   system: systemRouter,
   crypto: cryptoRouter,
+  coingecko: coingeckoRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

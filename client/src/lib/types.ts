@@ -12,6 +12,16 @@ export interface CryptoQuote {
   percent_change_30d: number;
 }
 
+export interface SocialMetrics {
+  reddit_subscribers?: number;
+  reddit_average_posts_48h?: number;
+  reddit_average_comments_48h?: number;
+  reddit_accounts_active_48h?: number;
+  telegram_channel_user_count?: number;
+  facebook_likes?: number;
+  twitter_followers?: number;
+}
+
 export interface CryptoData {
   id: number;
   name: string;
@@ -24,6 +34,14 @@ export interface CryptoData {
   quote: {
     USD: CryptoQuote;
   };
+  social_metrics?: SocialMetrics;
+}
+
+export interface CommunityMetrics {
+  redditScore: number;
+  telegramScore: number;
+  facebookScore: number;
+  overallCommunityScore: number;
 }
 
 export interface EnrichedCryptoData extends CryptoData {
@@ -32,6 +50,7 @@ export interface EnrichedCryptoData extends CryptoData {
   supplyRatio: number; // circulating_supply / total_supply
   communityScore: number; // 0-100, based on market cap rank
   volatility: number; // Based on 24h, 7d, 30d percent changes
+  communityMetrics?: CommunityMetrics;
 }
 
 export interface RiskScoreComponents {

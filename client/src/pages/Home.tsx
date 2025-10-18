@@ -6,6 +6,7 @@ import { FilterControls } from '@/components/FilterControls';
 import { CryptoTable } from '@/components/CryptoTable';
 import { RiskDistributionChart } from '@/components/RiskDistributionChart';
 import { MarketCapChart } from '@/components/MarketCapChart';
+import { SupplyRatioInfo } from '@/components/SupplyRatioInfo';
 import { Card } from '@/components/ui/card';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -133,6 +134,9 @@ export default function Home() {
               <RiskDistributionChart cryptos={cryptos} />
               <MarketCapChart cryptos={cryptos} />
             </div>
+
+            {/* Arz Oranı Bilgisi */}
+            <SupplyRatioInfo />
 
             {/* Filtreler */}
             <FilterControls

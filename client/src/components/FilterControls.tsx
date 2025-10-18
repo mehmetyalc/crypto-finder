@@ -139,6 +139,9 @@ export function FilterControls({
         <div>
           <label className="block text-sm font-medium mb-2">
             Min Arz Oranı (%)
+            <span className="text-xs text-gray-500 block mt-1">
+              Dolaşımdaki arz / Toplam arz
+            </span>
           </label>
           <Input
             type="number"
@@ -147,6 +150,9 @@ export function FilterControls({
             max="100"
             onChange={(e) => handleMinSupplyRatioChange(e.target.value)}
           />
+          <p className="text-xs text-gray-500 mt-2">
+            💡 %70 altı = Enflasyon riski
+          </p>
         </div>
 
         {/* Reset Butonu */}

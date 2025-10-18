@@ -34,6 +34,23 @@ function getRiskLevelLabel(riskLevel: string): string {
   }
 }
 
+function getSupplyRatioColor(ratio: number): string {
+  // Arz oranı yüksekse (90%+) yeşil, düşükse (30%-) kırmızı
+  if (ratio >= 0.9) return 'text-green-700 font-semibold';
+  if (ratio >= 0.7) return 'text-green-600 font-semibold';
+  if (ratio >= 0.5) return 'text-yellow-600 font-semibold';
+  if (ratio >= 0.3) return 'text-orange-600 font-semibold';
+  return 'text-red-600 font-semibold';
+}
+
+function getSupplyRatioBadge(ratio: number): string {
+  if (ratio >= 0.9) return 'bg-green-100 text-green-800';
+  if (ratio >= 0.7) return 'bg-green-50 text-green-700';
+  if (ratio >= 0.5) return 'bg-yellow-100 text-yellow-800';
+  if (ratio >= 0.3) return 'bg-orange-100 text-orange-800';
+  return 'bg-red-100 text-red-800';
+}
+
 export function CryptoTable({ cryptos, title }: CryptoTableProps) {
   if (cryptos.length === 0) {
     return (
@@ -108,8 +125,10 @@ export function CryptoTable({ cryptos, title }: CryptoTableProps) {
                     {crypto.riskScore}
                   </Badge>
                 </td>
-                <td className="text-right py-3 px-4 font-mono">
-                  {(crypto.supplyRatio * 100).toFixed(1)}%
+                <td className="text-right py-3 px-4">
+                  <Badge className={`${getSupplyRatioBadge(crypto.supplyRatio)}`}>
+                    {(crypto.supplyRatio * 100).toFixed(1)}%
+                  </Badge>
                 </td>
               </tr>
             ))}

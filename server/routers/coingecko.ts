@@ -16,9 +16,38 @@ interface CoinGeckoData {
   };
 }
 
+// Simple in-memory cache for coin list
+let coinListCache: any[] | null = null;
+let coinListCacheTime = 0;
+const COIN_LIST_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+async function getCoinListCached() {
+  const now = Date.now();
+  if (coinListCache && (now - coinListCacheTime) < COIN_LIST_CACHE_DURATION) {
+    return coinListCache;
+  }
+
+  try {
+    const response = await fetch(
+      `${COINGECKO_API_URL}/coins/list?include_platform=false`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch coin list: ${response.status}`);
+    }
+    coinListCache = await response.json();
+    coinListCacheTime = now;
+    return coinListCache;
+  } catch (error) {
+    console.error('Error fetching coin list:', error);
+    // Return empty array on error to avoid crashing
+    return [];
+  }
+}
+
 export const coingeckoRouter = router({
   /**
    * CoinGecko API'sinden kripto paranın sosyal medya ve topluluk verilerini çek
+   * Rate limit'e takılırsa graceful degradation ile sessiz başarısızlık döndür
    */
   getSocialMetrics: publicProcedure
     .input(
@@ -28,16 +57,14 @@ export const coingeckoRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        // CoinGecko coin ID'sini bul (symbol'dan)
-        const listResponse = await fetch(
-          `${COINGECKO_API_URL}/coins/list?include_platform=false`
-        );
-
-        if (!listResponse.ok) {
-          throw new Error(`Failed to fetch coin list: ${listResponse.status}`);
+        // Cached coin list'i kullan
+        const coinList = await getCoinListCached();
+        if (!coinList || coinList.length === 0) {
+          return {
+            community_data: null,
+            error: null,
+          };
         }
-
-        const coinList = await listResponse.json();
         const coin = coinList.find(
           (c: { symbol: string }) => c.symbol.toLowerCase() === input.cryptoSymbol
         );
@@ -45,7 +72,7 @@ export const coingeckoRouter = router({
         if (!coin) {
           return {
             community_data: null,
-            error: `Coin not found for symbol: ${input.cryptoSymbol}`,
+            error: null, // Sessiz başarısızlık
           };
         }
 
@@ -55,6 +82,14 @@ export const coingeckoRouter = router({
         );
 
         if (!dataResponse.ok) {
+          // Rate limit hatası - sessiz başarısızlık
+          if (dataResponse.status === 429) {
+            console.warn(`Rate limited for ${input.cryptoSymbol}`);
+            return {
+              community_data: null,
+              error: null,
+            };
+          }
           throw new Error(`Failed to fetch coin data: ${dataResponse.status}`);
         }
 
@@ -66,15 +101,17 @@ export const coingeckoRouter = router({
         };
       } catch (error) {
         console.error('Error fetching from CoinGecko API:', error);
+        // Sessiz başarısızlık - uygulamayı çökertme
         return {
           community_data: null,
-          error: error instanceof Error ? error.message : 'Failed to fetch social metrics',
+          error: null,
         };
       }
     }),
 
   /**
    * Birden fazla kripto paranın sosyal metriklerini toplu olarak çek
+   * Rate limit'e takılırsa graceful degradation ile devam et
    */
   getSocialMetricsBatch: publicProcedure
     .input(
@@ -84,16 +121,11 @@ export const coingeckoRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        // CoinGecko coin ID'lerini bul
-        const listResponse = await fetch(
-          `${COINGECKO_API_URL}/coins/list?include_platform=false`
-        );
-
-        if (!listResponse.ok) {
-          throw new Error(`Failed to fetch coin list: ${listResponse.status}`);
+        // Cached coin list'i kullan
+        const coinList = await getCoinListCached();
+        if (!coinList || coinList.length === 0) {
+          return {};
         }
-
-        const coinList = await listResponse.json();
         const symbolMap = new Map<string, string>();
 
         input.symbols.forEach((symbol) => {
@@ -118,12 +150,16 @@ export const coingeckoRouter = router({
             if (response.ok) {
               const data: CoinGeckoData = await response.json();
               results[symbol] = data.community_data || null;
+            } else if (response.status === 429) {
+              // Rate limit - sessiz başarısızlık
+              console.warn(`Rate limited for ${symbol}`);
+              results[symbol] = null;
             } else {
               results[symbol] = null;
             }
 
-            // Rate limit'i aşmamak için kısa bir gecikme
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            // Rate limit'i aşmamak için daha uzun bir gecikme
+            await new Promise((resolve) => setTimeout(resolve, 200));
           } catch (error) {
             console.error(`Error fetching data for ${symbol}:`, error);
             results[symbol] = null;
@@ -133,7 +169,8 @@ export const coingeckoRouter = router({
         return results;
       } catch (error) {
         console.error('Error in batch fetch:', error);
-        throw error;
+        // Sessiz başarısızlık - boş object döndür
+        return {};
       }
     }),
 });

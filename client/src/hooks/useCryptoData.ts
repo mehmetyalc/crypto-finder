@@ -12,7 +12,7 @@ interface UseCryptoDataReturn {
 
 /**
  * tRPC aracılığıyla CoinMarketCap API'den kripto para verilerini çek ve zenginleştir
- * CoinGecko'dan sosyal medya metriklerini de çek
+ * CoinGecko API çağrılarını kaldırdık - rate limit sorunları nedeniyle
  */
 export function useCryptoData(limit: number = 100): UseCryptoDataReturn {
   const [cryptos, setCryptos] = useState<EnrichedCryptoData[]>([]);
@@ -27,29 +27,13 @@ export function useCryptoData(limit: number = 100): UseCryptoDataReturn {
     }
   );
 
-  // Sosyal metrikler için batch query - CoinGecko verisi
-  const cryptoSymbols = data?.data?.map((c: CryptoData) => c.symbol) || [];
-  const { data: socialData } = trpc.coingecko.getSocialMetricsBatch.useQuery(
-    { symbols: cryptoSymbols },
-    {
-      enabled: cryptoSymbols.length > 0,
-      staleTime: 10 * 60 * 1000, // 10 dakika
-      gcTime: 20 * 60 * 1000, // 20 dakika
-    }
-  );
-
   // Verileri zenginleştir ve state'e kaydet
   useEffect(() => {
     if (data?.data && Array.isArray(data.data)) {
       try {
-        const enrichedCryptos = data.data.map((crypto: CryptoData) => {
-          const enriched = enrichCryptoData(crypto);
-          // Sosyal metrikler varsa ekle
-          if (socialData && socialData[crypto.symbol.toLowerCase()]) {
-            enriched.social_metrics = socialData[crypto.symbol.toLowerCase()];
-          }
-          return enriched;
-        });
+        const enrichedCryptos = data.data.map((crypto: CryptoData) =>
+          enrichCryptoData(crypto)
+        );
         setCryptos(enrichedCryptos);
         setError(null);
       } catch (err) {
@@ -58,7 +42,7 @@ export function useCryptoData(limit: number = 100): UseCryptoDataReturn {
         console.error('Error enriching crypto data:', err);
       }
     }
-  }, [data, socialData]);
+  }, [data]);
 
   // Hata durumunu yönet
   useEffect(() => {

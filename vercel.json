@@ -1,16 +1,6 @@
 {
   "buildCommand": "pnpm build",
-  "outputDirectory": "dist",
-  "env": {
-    "VITE_APP_TITLE": "Kripto Para Bulucu",
-    "VITE_APP_LOGO": "/logo.svg",
-    "VITE_ANALYTICS_ENDPOINT": "https://analytics.example.com",
-    "VITE_ANALYTICS_WEBSITE_ID": "default"
-  },
-  "functions": {
-    "server/**": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  "outputDirectory": "dist/public",
+  "framework": "vite"
 }
 

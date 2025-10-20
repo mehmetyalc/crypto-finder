@@ -40,14 +40,15 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: import.meta.env.PROD ? "https://crypto-finder-api.onrender.com/api/trpc" : "/api/trpc",
       transformer: superjson,
-      fetch(input, init) {
+      async fetch(input, init) {
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
         });
       },
+
     }),
   ],
 });

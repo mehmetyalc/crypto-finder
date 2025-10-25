@@ -21,20 +21,14 @@ export function MarketCapChart({ cryptos }: MarketCapChartProps) {
   const topCryptos = cryptos.slice(0, 10).map((crypto) => ({
     name: crypto.symbol,
     marketCap: crypto.quote.USD.market_cap / 1_000_000_000, // Milyar cinsinden
-    riskLevel: crypto.riskLevel,
+    communityScore: crypto.communityScore,
   }));
 
-  const getRiskColor = (riskLevel: string) => {
-    switch (riskLevel) {
-      case 'low':
-        return '#10b981';
-      case 'medium':
-        return '#f59e0b';
-      case 'high':
-        return '#ef4444';
-      default:
-        return '#6b7280';
-    }
+  const getCommunityColor = (score: number) => {
+    if (score >= 80) return '#10b981';
+    if (score >= 60) return '#3b82f6';
+    if (score >= 40) return '#f59e0b';
+    return '#ef4444';
   };
 
   return (
@@ -52,7 +46,7 @@ export function MarketCapChart({ cryptos }: MarketCapChartProps) {
             {topCryptos.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={getRiskColor(entry.riskLevel)}
+                fill={getCommunityColor(entry.communityScore)}
               />
             ))}
           </Bar>

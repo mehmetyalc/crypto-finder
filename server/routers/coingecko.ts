@@ -5,6 +5,7 @@ const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3';
 
 interface CoinGeckoData {
   id: string;
+  categories?: string[];
   community_data?: {
     reddit_subscribers?: number;
     reddit_average_posts_48h?: number;
@@ -13,6 +14,11 @@ interface CoinGeckoData {
     telegram_channel_user_count?: number;
     facebook_likes?: number;
     twitter_followers?: number;
+  };
+  links?: {
+    twitter?: string[];
+    telegram?: string[];
+    reddit?: string[];
   };
 }
 
@@ -76,9 +82,9 @@ export const coingeckoRouter = router({
           };
         }
 
-        // Sosyal medya verilerini çek
+        // Sosyal medya ve kategori verilerini çek
         const dataResponse = await fetch(
-          `${COINGECKO_API_URL}/coins/${coin.id}?localization=false&tickers=false&market_data=false&community_data=true&developer_data=false`
+          `${COINGECKO_API_URL}/coins/${coin.id}?localization=false&tickers=false&market_data=false&community_data=true&developer_data=false&categories=true`
         );
 
         if (!dataResponse.ok) {
@@ -97,6 +103,7 @@ export const coingeckoRouter = router({
 
         return {
           community_data: data.community_data || null,
+          categories: data.categories || [],
           error: null,
         };
       } catch (error) {
@@ -144,12 +151,15 @@ export const coingeckoRouter = router({
         for (const [symbol, coinId] of entries) {
           try {
             const response = await fetch(
-              `${COINGECKO_API_URL}/coins/${coinId}?localization=false&tickers=false&market_data=false&community_data=true&developer_data=false`
+              `${COINGECKO_API_URL}/coins/${coinId}?localization=false&tickers=false&market_data=false&community_data=true&developer_data=false&categories=true`
             );
 
             if (response.ok) {
               const data: CoinGeckoData = await response.json();
-              results[symbol] = data.community_data || null;
+              results[symbol] = {
+                community_data: data.community_data || null,
+                categories: data.categories || []
+              };
             } else if (response.status === 429) {
               // Rate limit - sessiz başarısızlık
               console.warn(`Rate limited for ${symbol}`);

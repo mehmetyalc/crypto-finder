@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useCryptoData } from '@/hooks/useCryptoData';
-import { filterCryptos, groupByRiskLevel } from '@/lib/riskCalculator';
+import { filterCryptos, groupByCategory } from '@/lib/riskCalculator';
 import { FilterOptions } from '@/lib/types';
 import { FilterControls } from '@/components/FilterControls';
 import { CryptoTable } from '@/components/CryptoTable';
-import { RiskDistributionChart } from '@/components/RiskDistributionChart';
 import { MarketCapChart } from '@/components/MarketCapChart';
 import { SupplyRatioInfo } from '@/components/SupplyRatioInfo';
 import { Card } from '@/components/ui/card';
@@ -14,9 +13,8 @@ import { Button } from '@/components/ui/button';
 export default function Home() {
   const { cryptos, loading: cryptoLoading, error: cryptoError, refetch } = useCryptoData(100);
   const [filters, setFilters] = useState<FilterOptions>({
-    riskLevel: 'all',
-    sortBy: 'riskScore',
-    sortOrder: 'asc',
+    sortBy: 'marketCap',
+    sortOrder: 'desc',
   });
 
   // Filtrelenmiş ve sıralanmış kripto paralar
@@ -24,19 +22,19 @@ export default function Home() {
     return filterCryptos(cryptos, filters);
   }, [cryptos, filters]);
 
-  // Risk seviyesine göre gruplandırılmış kripto paralar
+  // Kategoriye göre gruplandırılmış kripto paralar
   const groupedCryptos = useMemo(() => {
-    return groupByRiskLevel(cryptos);
+    return groupByCategory(cryptos);
   }, [cryptos]);
 
   // İstatistikler
   const stats = useMemo(() => {
     return {
       totalCryptos: cryptos.length,
-      avgRiskScore:
+      avgCommunityScore:
         cryptos.length > 0
           ? Math.round(
-              cryptos.reduce((sum, c) => sum + c.riskScore, 0) / cryptos.length
+              cryptos.reduce((sum, c) => sum + c.communityScore, 0) / cryptos.length
             )
           : 0,
       totalMarketCap: cryptos.reduce(
@@ -58,7 +56,7 @@ export default function Home() {
                 Kripto Para Bulucu
               </h1>
               <p className="text-gray-600 mt-1">
-                Risk seviyesine göre kripto paralar bulun ve analiz edin
+                Topluluk gücü ve kategorilerine göre kripto paralar bulun ve analiz edin
               </p>
             </div>
             <Button
@@ -82,7 +80,7 @@ export default function Home() {
               <AlertCircle className="w-5 h-5 text-red-600" />
               <div>
                 <h3 className="font-semibold text-red-900">Hata</h3>
-                <p className="text-sm text-red-700">{cryptoError}</p>
+                <p className="text-red-700">{cryptoError}</p>
               </div>
             </div>
           </Card>
@@ -90,97 +88,86 @@ export default function Home() {
 
         {/* Yükleniyor */}
         {cryptoLoading && cryptos.length === 0 && (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-              <p className="text-gray-600">Kripto para verileri yükleniyor...</p>
-            </div>
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <span className="ml-3 text-gray-600">Kripto para verileri yükleniyor...</span>
           </div>
         )}
 
-        {/* İçerik */}
         {!cryptoLoading && cryptos.length > 0 && (
           <>
-            {/* İstatistikler */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card className="p-4">
+            {/* İstatistik Kartları */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              <Card className="p-6 bg-white">
                 <div className="text-sm text-gray-600">Toplam Kripto</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
+                <div className="text-3xl font-bold text-gray-900 mt-2">
                   {stats.totalCryptos}
                 </div>
               </Card>
-              <Card className="p-4">
-                <div className="text-sm text-gray-600">Ort. Risk Skoru</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
-                  {stats.avgRiskScore}
+              <Card className="p-6 bg-white">
+                <div className="text-sm text-gray-600">Ort. Topluluk Gücü</div>
+                <div className="text-3xl font-bold text-blue-600 mt-2">
+                  {stats.avgCommunityScore}
                 </div>
               </Card>
-              <Card className="p-4">
+              <Card className="p-6 bg-white">
                 <div className="text-sm text-gray-600">Toplam Market Cap</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
-                  ${(stats.totalMarketCap / 1_000_000_000_000).toFixed(2)}T
+                <div className="text-3xl font-bold text-gray-900 mt-2">
+                  ${(stats.totalMarketCap / 1_000_000_000).toFixed(2)}B
                 </div>
               </Card>
-              <Card className="p-4">
-                <div className="text-sm text-gray-600">Toplam 24h Hacim</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
-                  ${(stats.totalVolume / 1_000_000_000_000).toFixed(2)}T
+              <Card className="p-6 bg-white">
+                <div className="text-sm text-gray-600">24h Hacim</div>
+                <div className="text-3xl font-bold text-gray-900 mt-2">
+                  ${(stats.totalVolume / 1_000_000_000).toFixed(2)}B
                 </div>
               </Card>
             </div>
 
             {/* Grafikler */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <RiskDistributionChart cryptos={cryptos} />
-              <MarketCapChart cryptos={cryptos} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <Card className="p-6 bg-white">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Top 10 Market Cap
+                </h2>
+                <MarketCapChart cryptos={filteredCryptos.slice(0, 10)} />
+              </Card>
+              <Card className="p-6 bg-white">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Kategoriler
+                </h2>
+                <div className="space-y-2">
+                  {Object.entries(groupedCryptos).map(([category, coins]) => (
+                    <div key={category} className="flex justify-between items-center">
+                      <span className="text-sm text-gray-700">{category}</span>
+                      <span className="text-sm font-semibold text-blue-600">
+                        {coins.length} coin
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
             </div>
 
             {/* Arz Oranı Bilgisi */}
             <SupplyRatioInfo />
 
             {/* Filtreler */}
-            <FilterControls
-              filters={filters}
-              onFiltersChange={setFilters}
-            />
+            <Card className="p-6 bg-white mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Filtreler</h2>
+              <FilterControls filters={filters} onFiltersChange={setFilters} />
+            </Card>
 
-            {/* Tablolar */}
-            <div className="space-y-6">
-              <CryptoTable
-                cryptos={groupedCryptos.low}
-                title={`Düşük Risk Kriptolar (${groupedCryptos.low.length})`}
-              />
-              <CryptoTable
-                cryptos={groupedCryptos.medium}
-                title={`Orta Risk Kriptolar (${groupedCryptos.medium.length})`}
-              />
-              <CryptoTable
-                cryptos={groupedCryptos.high}
-                title={`Yüksek Risk Kriptolar (${groupedCryptos.high.length})`}
-              />
-            </div>
-
-            {/* Filtrelenmiş Sonuçlar */}
-            {filters.riskLevel !== 'all' && (
-              <div className="mt-6">
-                <CryptoTable
-                  cryptos={filteredCryptos}
-                  title="Filtrelenmiş Sonuçlar"
-                />
-              </div>
-            )}
+            {/* Kripto Tablosu */}
+            <Card className="p-6 bg-white">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Kripto Paralar ({filteredCryptos.length})
+              </h2>
+              <CryptoTable cryptos={filteredCryptos} />
+            </Card>
           </>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-sm text-gray-600 text-center">
-            Veriler CoinMarketCap API'sinden alınmaktadır. Her 5 dakikada bir güncellenir.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

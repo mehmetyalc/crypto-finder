@@ -35,6 +35,7 @@ export interface CryptoData {
     USD: CryptoQuote;
   };
   social_metrics?: SocialMetrics;
+  categories?: string[];
 }
 
 export interface CommunityMetrics {
@@ -45,12 +46,11 @@ export interface CommunityMetrics {
 }
 
 export interface EnrichedCryptoData extends CryptoData {
-  riskScore: number;
-  riskLevel: 'low' | 'medium' | 'high';
   supplyRatio: number; // circulating_supply / total_supply
-  communityScore: number; // 0-100, based on market cap rank
+  communityScore: number; // 0-100, based on social media metrics
   volatility: number; // Based on 24h, 7d, 30d percent changes
   communityMetrics?: CommunityMetrics;
+  primaryCategory?: string; // Main category (DeFi, AI, Layer 2, etc.)
 }
 
 export interface RiskScoreComponents {

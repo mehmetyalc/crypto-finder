@@ -9,24 +9,41 @@ import {
   Tooltip,
 } from 'recharts';
 
-interface RiskDistributionChartProps {
+interface CategoryDistributionChartProps {
   cryptos: EnrichedCryptoData[];
 }
 
-export function RiskDistributionChart({ cryptos }: RiskDistributionChartProps) {
-  const lowRisk = cryptos.filter((c) => c.riskLevel === 'low').length;
-  const mediumRisk = cryptos.filter((c) => c.riskLevel === 'medium').length;
-  const highRisk = cryptos.filter((c) => c.riskLevel === 'high').length;
+const COLORS = [
+  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+  '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#06b6d4'
+];
 
-  const data = [
-    { name: 'Düşük Risk', value: lowRisk, color: '#10b981' },
-    { name: 'Orta Risk', value: mediumRisk, color: '#f59e0b' },
-    { name: 'Yüksek Risk', value: highRisk, color: '#ef4444' },
-  ];
+export function RiskDistributionChart({ cryptos }: CategoryDistributionChartProps) {
+  // Kategorilere göre grupla
+  const categoryCount: Record<string, number> = {};
+  
+  cryptos.forEach((crypto) => {
+    const category = crypto.primaryCategory || 'Diğer';
+    categoryCount[category] = (categoryCount[category] || 0) + 1;
+  });
+
+  const data = Object.entries(categoryCount)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 10); // Top 10 kategori
+
+  if (data.length === 0) {
+    return (
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Kategori Dağılımı</h3>
+        <p className="text-gray-500 text-center py-8">Veri yok</p>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Risk Dağılımı</h3>
+      <h3 className="text-lg font-semibold mb-4">Kategori Dağılımı</h3>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
@@ -40,7 +57,7 @@ export function RiskDistributionChart({ cryptos }: RiskDistributionChartProps) {
             dataKey="value"
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip />

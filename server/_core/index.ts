@@ -32,19 +32,31 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
   
-  // CORS configuration
-  app.use(cors({
-    origin: [
-      "https://crypto-finder-eight.vercel.app",
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "http://127.0.0.1:3000",
-      "http://127.0.0.1:5173"
-    ],
+  // CORS configuration - Allow all Vercel deployments
+  const corsOptions = {
+    origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      
+      // Allow all Vercel deployments
+      if (origin.includes('vercel.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Allow all for now
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-  }));
+    allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 200
+  };
+  
+  app.use(cors(corsOptions));
+  app.options('*', cors(corsOptions));
   
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
@@ -79,3 +91,4 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
+

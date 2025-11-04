@@ -64,6 +64,92 @@ function calculateSupplyRatio(
 }
 
 /**
+ * Kripto Parasının Adına Göre Kategori Belirle
+ */
+function getCategoryByName(name: string, symbol: string): string | undefined {
+  const lowerName = name.toLowerCase();
+  const lowerSymbol = symbol.toLowerCase();
+  
+  // DeFi kategorisi
+  if (lowerName.includes('uniswap') || lowerName.includes('aave') || 
+      lowerName.includes('curve') || lowerName.includes('lido') ||
+      lowerName.includes('maker') || lowerName.includes('compound') ||
+      lowerSymbol === 'uni' || lowerSymbol === 'aave' || lowerSymbol === 'crv' ||
+      lowerSymbol === 'ldo' || lowerSymbol === 'mkr' || lowerSymbol === 'comp') {
+    return 'DeFi';
+  }
+  
+  // AI kategorisi
+  if (lowerName.includes('ai') || lowerName.includes('artificial intelligence') ||
+      lowerName.includes('neural') || lowerName.includes('render') ||
+      lowerSymbol === 'rndr' || lowerSymbol === 'fet' || lowerSymbol === 'agix') {
+    return 'Yapay Zeka';
+  }
+  
+  // Layer 2 kategorisi
+  if (lowerName.includes('arbitrum') || lowerName.includes('optimism') ||
+      lowerName.includes('polygon') || lowerName.includes('layer 2') ||
+      lowerSymbol === 'arb' || lowerSymbol === 'op' || lowerSymbol === 'matic') {
+    return 'Layer 2';
+  }
+  
+  // Layer 1 kategorisi
+  if (lowerName.includes('solana') || lowerName.includes('cardano') ||
+      lowerName.includes('avalanche') || lowerName.includes('polkadot') ||
+      lowerName.includes('cosmos') || lowerName.includes('near') ||
+      lowerSymbol === 'sol' || lowerSymbol === 'ada' || lowerSymbol === 'avax' ||
+      lowerSymbol === 'dot' || lowerSymbol === 'atom' || lowerSymbol === 'near') {
+    return 'Layer 1';
+  }
+  
+  // Meme kategorisi
+  if (lowerName.includes('doge') || lowerName.includes('shib') ||
+      lowerName.includes('pepe') || lowerName.includes('floki') ||
+      lowerSymbol === 'doge' || lowerSymbol === 'shib' || lowerSymbol === 'pepe') {
+    return 'Meme';
+  }
+  
+  // Gaming kategorisi
+  if (lowerName.includes('axie') || lowerName.includes('sandbox') ||
+      lowerName.includes('decentraland') || lowerName.includes('enjin') ||
+      lowerName.includes('gala') || lowerSymbol === 'axs' || lowerSymbol === 'sand' ||
+      lowerSymbol === 'mana' || lowerSymbol === 'enj' || lowerSymbol === 'gala') {
+    return 'Gaming';
+  }
+  
+  // Privacy kategorisi
+  if (lowerName.includes('monero') || lowerName.includes('zcash') ||
+      lowerName.includes('privacy') || lowerSymbol === 'xmr' || lowerSymbol === 'zec') {
+    return 'Privacy';
+  }
+  
+  // NFT kategorisi
+  if (lowerName.includes('immutable') || lowerName.includes('flow') ||
+      lowerSymbol === 'imx' || lowerSymbol === 'flow') {
+    return 'NFT';
+  }
+  
+  // Stablecoin kategorisi
+  if (lowerName.includes('tether') || lowerName.includes('usdc') ||
+      lowerName.includes('dai') || lowerName.includes('usdt') ||
+      lowerSymbol === 'usdt' || lowerSymbol === 'usdc' || lowerSymbol === 'dai') {
+    return 'Stablecoin';
+  }
+  
+  // Bitcoin kategorisi
+  if (lowerName.includes('bitcoin') || lowerSymbol === 'btc') {
+    return 'Bitcoin';
+  }
+  
+  // Ethereum kategorisi
+  if (lowerName.includes('ethereum') || lowerSymbol === 'eth') {
+    return 'Ethereum';
+  }
+  
+  return undefined;
+}
+
+/**
  * Ana Kategoriyi Seç
  */
 function getPrimaryCategory(categories?: string[]): string | undefined {
@@ -104,7 +190,12 @@ export function enrichCryptoData(crypto: CryptoData): EnrichedCryptoData {
     crypto.quote.USD.percent_change_7d,
     crypto.quote.USD.percent_change_30d
   );
-  const primaryCategory = getPrimaryCategory(crypto.categories);
+  
+  // Önce CoinGecko kategorilerini kontrol et, yoksa adına göre belirle
+  let primaryCategory = getPrimaryCategory(crypto.categories);
+  if (!primaryCategory) {
+    primaryCategory = getCategoryByName(crypto.name, crypto.symbol);
+  }
   
   return {
     ...crypto,

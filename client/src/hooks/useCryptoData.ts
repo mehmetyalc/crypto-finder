@@ -12,7 +12,6 @@ interface UseCryptoDataReturn {
 
 /**
  * tRPC aracılığıyla CoinMarketCap API'den kripto para verilerini çek ve zenginleştir
- * CoinGecko API'den kategorileri çek
  */
 export function useCryptoData(limit: number = 100): UseCryptoDataReturn {
   const [cryptos, setCryptos] = useState<EnrichedCryptoData[]>([]);
@@ -27,53 +26,14 @@ export function useCryptoData(limit: number = 100): UseCryptoDataReturn {
     }
   );
 
-  // Verileri zenginleştir ve CoinGecko kategorilerini çek
+  // Verileri zenginleştir
   useEffect(() => {
     if (data?.data && Array.isArray(data.data)) {
       try {
         const enrichedCryptos = data.data.map((crypto: CryptoData) =>
           enrichCryptoData(crypto)
         );
-        
-        // CoinGecko'dan kategorileri çek
-        const fetchCategories = async () => {
-          try {
-            const symbols = enrichedCryptos.map((c: EnrichedCryptoData) => c.symbol.toLowerCase()).slice(0, 30);
-            const categoryMap: Record<string, string> = {};
-            
-            for (const symbol of symbols) {
-              try {
-                const response = await fetch(
-                  `https://api.coingecko.com/api/v3/search?query=${symbol}`
-                );
-                if (response.ok) {
-                  const result = await response.json();
-                  if (result.coins && result.coins.length > 0) {
-                    const coin = result.coins[0];
-                    if (coin.categories && coin.categories.length > 0) {
-                      categoryMap[symbol] = coin.categories[0];
-                    }
-                  }
-                }
-              } catch (err) {
-                console.warn(`Failed to fetch category for ${symbol}`);
-              }
-            }
-            
-            // Kategorileri enriched data'ya ekle
-            const cryptosWithCategories = enrichedCryptos.map((crypto: EnrichedCryptoData) => ({
-              ...crypto,
-              primaryCategory: categoryMap[crypto.symbol.toLowerCase()] || crypto.primaryCategory
-            }));
-            
-            setCryptos(cryptosWithCategories);
-          } catch (err) {
-            console.error('Error fetching categories:', err);
-            setCryptos(enrichedCryptos);
-          }
-        };
-        
-        fetchCategories();
+        setCryptos(enrichedCryptos);
         setError(null);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Veri işleme hatası';

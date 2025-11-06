@@ -70,12 +70,59 @@ function getCategoryByName(name: string, symbol: string): string | undefined {
   const lowerName = name.toLowerCase();
   const lowerSymbol = symbol.toLowerCase();
   
+  // Exchange Token kategorisi
+  if (lowerName.includes('binance') || lowerName.includes('kuCoin') || 
+      lowerName.includes('okb') || lowerName.includes('leo') ||
+      lowerSymbol === 'bnb' || lowerSymbol === 'kcs' || lowerSymbol === 'okb' || 
+      lowerSymbol === 'leo' || lowerSymbol === 'gt' || lowerSymbol === 'ftt') {
+    return 'Exchange Token';
+  }
+  
+  // L1 Blockchain kategorisi
+  if (lowerName.includes('ripple') || lowerName.includes('tron') ||
+      lowerName.includes('litecoin') || lowerName.includes('toncoin') ||
+      lowerName.includes('kaspa') || lowerName.includes('vechain') ||
+      lowerSymbol === 'xrp' || lowerSymbol === 'trx' || lowerSymbol === 'ltc' ||
+      lowerSymbol === 'ton' || lowerSymbol === 'kas' || lowerSymbol === 'vet') {
+    return 'Blockchain';
+  }
+  
+  // Staking kategorisi
+  if (lowerName.includes('hyperliquid') || lowerName.includes('ethena') ||
+      lowerName.includes('hedera') || lowerName.includes('cronos') ||
+      lowerSymbol === 'hype' || lowerSymbol === 'ena' || lowerSymbol === 'hbar' || 
+      lowerSymbol === 'cro') {
+    return 'Staking';
+  }
+  
+  // Sui kategorisi
+  if (lowerName.includes('sui') || lowerSymbol === 'sui') {
+    return 'Layer 1';
+  }
+  
+  // Mantle kategorisi
+  if (lowerName.includes('mantle') || lowerSymbol === 'mnt') {
+    return 'Layer 2';
+  }
+  
+  // Bittensor kategorisi
+  if (lowerName.includes('bittensor') || lowerSymbol === 'tao') {
+    return 'AI';
+  }
+  
+  // Stellar kategorisi
+  if (lowerName.includes('stellar') || lowerSymbol === 'xlm') {
+    return 'Blockchain';
+  }
+  
   // DeFi kategorisi
   if (lowerName.includes('uniswap') || lowerName.includes('aave') || 
       lowerName.includes('curve') || lowerName.includes('lido') ||
       lowerName.includes('maker') || lowerName.includes('compound') ||
+      lowerName.includes('pancakeswap') || lowerName.includes('aerodrome') ||
       lowerSymbol === 'uni' || lowerSymbol === 'aave' || lowerSymbol === 'crv' ||
-      lowerSymbol === 'ldo' || lowerSymbol === 'mkr' || lowerSymbol === 'comp') {
+      lowerSymbol === 'ldo' || lowerSymbol === 'mkr' || lowerSymbol === 'comp' ||
+      lowerSymbol === 'cake' || lowerSymbol === 'aero') {
     return 'DeFi';
   }
   
